@@ -6,7 +6,7 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
 
-var User = require('../models/user');
+var Apartment = require('../models/user');
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
@@ -22,7 +22,7 @@ router.get('/login', function(req, res, next) {
 });
 
 
-router.post('/login',
+router.post	('/login',
   passport.authenticate('local',{failureRedirect: '/users/login', failureFlash: 'invalid username or password'}),
   function(req, res) {
     		
@@ -37,19 +37,21 @@ passport.serializeUser(function(user, done){
 });
 
 passport.deserializeUser(function(id, done){
-	User.getUserById(id, function(err, user){
+	Apartment.getUserById(id, function(err, user){
 		done(err, user);
 	});
 });
 
 passport.use(new LocalStrategy(function(username, password, done){
-	User.getUserByUsername(username, function(err, user){
-		if(err) throw err;
-		if(!user){
+	Apartment.getUserByUsername(username, function(err, user){
+		if(err) {
+			throw err;
+				}
+		if(!user){	
 			return done(null, false, {message:'Unknown User'});
 		}
 
-	User.comparePassword(password, user.password, function(err, isMatch){
+	Apartment.comparePassword(password, user.password, function(err, isMatch){
 		if(err) return done(err);
 		if(isMatch)
 		{	
@@ -65,32 +67,25 @@ passport.use(new LocalStrategy(function(username, password, done){
 
 }));
 
-router.post('/register', upload.single('profileimage'),function(req, res, next) {
- //console.log(req.body.name);
+router.post('/register', function(req, res, next) {
+ console.log(req.body);
  var name = req.body.name;
  var email = req.body.email;
  var username = req.body.username;
  var password = req.body.password;
  var password2 = req.body.password2;
-
+ var contact = req.body.contact;
  //console.log(req.file);
- if(req.file){
- 	console.log('Uploading File...');
- 	var profileimage = req.file.filename;
-	}else{
-		console.log('No File Uploaded...');
-		var profileimage = 'noimage.jpg';
-	}	
+ var fso = "True";
 
 	//Form Validation
-	req.checkBody('name','Name field is required').notEmpty();
+/*	req.checkBody('name','Name field is required').notEmpty();
 	req.checkBody('email','Email field is required').notEmpty();
 	req.checkBody('email','Email field is not Valid').isEmail();
 	req.checkBody('username','Username field is required').notEmpty();
 	req.checkBody('password','Password field is required').notEmpty();	
 	req.checkBody('password2','Passwords do not match').equals(req.body.password);
-
-
+	
 	//Check Errors
 	var errors = req.validationErrors();
 
@@ -101,17 +96,18 @@ router.post('/register', upload.single('profileimage'),function(req, res, next) 
 			errors: errors
 		});
 	}else
-	{
+	{ */
 		//console.log('No Errors');
-		var newUser = new User({
-			name: name,
+		var newUser = new Apartment({
+			owner: name,
 			email: email,
 			username: username,
 			password: password,
-			profileimage: profileimage
+			firstTimesignOn: fso,
+			contact: contact
 		});
 
-		User.createUser(newUser, function(err, user){
+		Apartment.createUser(newUser, function(err, user){
 			if(err)
 			{
 				throw err;
@@ -121,7 +117,7 @@ router.post('/register', upload.single('profileimage'),function(req, res, next) 
 		req.flash('success','You are now Registered and can Login');
 		res.location('/');
 		res.redirect('/');
-	}
+	
  
 });
 
