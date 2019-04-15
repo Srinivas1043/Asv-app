@@ -1,6 +1,8 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 mongoose.set('useCreateIndex', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useUpdate', true);
 mongoose.connect('mongodb://admin:admin123@ds013559.mlab.com:13559/asvsunrise',{ useNewUrlParser: true });
 var db = mongoose.connection;
 
@@ -31,6 +33,22 @@ var ApartmentSchema = mongoose.Schema({
 
 
 var Apartment = module.exports = mongoose.model('Apartment', ApartmentSchema,'Apartment');
+
+module.exports.updatePassword = function(userid, password, callback) {
+	bcrypt.genSalt(10, function(err,salt){
+		bcrypt.hash(password, salt, function(err, hash){
+			password = hash;
+			var fso = "False";
+			var updatequery = {_id: userid }
+			var setquery = {$set:{password: password,firstTimesignOn: fso}}
+			console.log(setquery);
+			Apartment.updateOne(updatequery,setquery,{upsert: true} , callback)
+			
+				
+		
+		});
+	});
+}
 
 module.exports.getUserById = function(id, callback){
 	Apartment.findById(id, callback);

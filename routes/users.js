@@ -6,6 +6,7 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
 
+
 var Apartment = require('../models/user');
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -22,12 +23,58 @@ router.get('/login', function(req, res, next) {
 });
 
 
+router.get('/reset_password', function(req, res, next) {
+	console.log(req.query.user);
+	res.render('reset_password',{title:'Reset Password',
+	userId: req.query.user 
+			});
+  });
+
+  
+router.post('/updatePassword', function(req,res){
+	//1. Password and firstTimesignOn to be updated in the db
+	//2. Redirect to Login view
+	console.log(req.body);
+	var password = req.body.password;
+	var password2 = req.body.password2;
+	var userid = req.body.userid;
+
+	Apartment.updatePassword(userid, password, function(err, user){
+	
+		if(err)
+		{
+			throw err;
+		}
+		else
+		{
+			console.log(password);
+		}
+
+		});
+		req.flash('success','You are now updated and can Login');
+		res.redirect('/users/login');
+		
+	
+});
+
 router.post('/login',
   passport.authenticate('local',{failureRedirect: '/users/login', failureFlash: 'invalid username or password'}),
   function(req, res) {
-    		
-  	req.flash('success','You are now logged in');
-  	res.redirect('/');
+			console.log("/login",req.user);
+			
+  
+	
+	if(req.user.firstTimesignOn == "True")
+	{
+		console.log("Redirect to Reset password");
+		res.redirect('/users/reset_password/?user='+req.user.id);
+	}
+	else
+	{
+		req.flash('success','You are now logged in');
+		res.redirect('/');
+		
+	}
 
   });
 
